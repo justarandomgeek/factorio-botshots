@@ -22,7 +22,7 @@ function copyPrototype(type, name, newName)
 end
 
 
-botshots_gun = copyPrototype("gun","artillery-wagon-cannon","botshots-canon")
+botshots_gun = copyPrototype("gun","artillery-wagon-cannon","botshots-cannon")
 botshots_gun.attack_parameters.ammo_category = "botshots-shell"
 
 botshots_turret = copyPrototype("artillery-turret","artillery-turret","botshots-turret")
@@ -48,11 +48,51 @@ botshots_remote.capsule_action.flare = "botshots-flare"
 botshots_flare = copyPrototype("artillery-flare","artillery-flare","botshots-flare")
 botshots_flare.shot_category = "botshots-shell"
 
+-- and make the normal remote exclusive to normla shots
+data.raw["artillery-flare"]["artillery-flare"].shot_category = "artillery-shell"
+
 
 data:extend({
   {
     type = "ammo-category",
     name = "botshots-shell"
+  },
+  {
+    type = "recipe",
+    name = "botshots-cannon",
+    enabled = "true",
+    ingredients =
+    {
+      {"artillery-turret", 1},
+      {"roboport", 1},
+    },
+    energy_required = 10,
+    result="botshots-turret",
+  },
+  {
+    type = "recipe",
+    name = "botshots-shell",
+    enabled = "true",
+    ingredients =
+    {
+      {"construction-robot", 5},
+      {"cannon-shell", 4},
+      {"roboport", 1},
+      {"radar", 1},
+    },
+    energy_required = 15,
+    result="botshots-shell",
+  },
+  {
+    type = "recipe",
+    name = "botshots-targeting-remote",
+    enabled = "true",
+    ingredients =
+    {
+      {"processing-unit", 1},
+      {"roboport", 1},
+    },
+    result="botshots-targeting-remote",
   },
   botshots_gun,
   botshots_turret,
