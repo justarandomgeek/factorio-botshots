@@ -60,7 +60,11 @@ script.on_event(defines.events.on_trigger_created_entity, function(event)
     chest.destructible = false
 
     for name,count in pairs(global.shells[cannon.unit_number].items) do
+      if name == 'logistic-robot' or name == 'construction-robot' then
+        entity.insert{name=name,count=count}
+      else
         chest.insert{name=name,count=count}
+      end
     end
 
     global.shells[cannon.unit_number] = nil
@@ -103,11 +107,17 @@ end)
 script.on_event({defines.events.on_robot_built_entity,defines.events.on_built_entity}, function(event)
   local entity = event.created_entity
   if entity.name == "botshots-turret" then
-    local chest = entity.surface.create_entity{
-        name='steel-chest',
-        position = {entity.position.x,entity.position.y+1},
+    local position = {entity.position.x,entity.position.y+1}
+    local chest = entity.surface.find_entity('entity-ghost', position)
+    if chest then
+      _,chest = chest.revive()
+    else
+      chest = entity.surface.create_entity{
+        name='botshots-chest',
+        position = position,
         force = entity.force
       }
+    end
 
     chest.minable=false
     chest.destructible = false

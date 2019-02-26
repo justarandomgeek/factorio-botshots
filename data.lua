@@ -28,8 +28,14 @@ botshots_gun.attack_parameters.ammo_category = "botshots-shell"
 botshots_turret = copyPrototype("artillery-turret","artillery-turret","botshots-turret")
 botshots_turret.gun = botshots_gun.name
 botshots_turret.disable_automatic_firing = true
+botshots_turret.collision_box = {{-1.45, -1.45}, {1.45, 0.9}}
 
 botshots_turret_item = copyPrototype("item","artillery-turret","botshots-turret")
+
+botshots_chest = copyPrototype("container","steel-chest","botshots-chest")
+botshots_chest.collision_box = {{-1.45,  0.0}, {1.45, 0.4}}
+
+botshots_chest_item = copyPrototype("item","steel-chest","botshots-chest")
 
 
 botshots_roboport = copyPrototype("roboport","roboport","botshots-roboport")
@@ -51,6 +57,12 @@ botshots_flare.shot_category = "botshots-shell"
 -- and make the normal remote exclusive to normla shots
 data.raw["artillery-flare"]["artillery-flare"].shot_category = "artillery-shell"
 
+local artytecheffects = data.raw["technology"]["artillery"].effects
+
+artytecheffects[#artytecheffects+1] = { type = "unlock-recipe", recipe = "botshots-cannon" }
+artytecheffects[#artytecheffects+1] = { type = "unlock-recipe", recipe = "botshots-shell" }
+artytecheffects[#artytecheffects+1] = { type = "unlock-recipe", recipe = "botshots-targeting-remote" }
+
 
 data:extend({
   {
@@ -60,7 +72,7 @@ data:extend({
   {
     type = "recipe",
     name = "botshots-cannon",
-    enabled = "true",
+    enabled = "false",
     ingredients =
     {
       {"artillery-turret", 1},
@@ -72,10 +84,11 @@ data:extend({
   {
     type = "recipe",
     name = "botshots-shell",
-    enabled = "true",
+    enabled = "false",
     ingredients =
     {
-      {"construction-robot", 5},
+      {"construction-robot", 2},
+      {"logistic-robot", 2},
       {"cannon-shell", 4},
       {"roboport", 1},
       {"radar", 1},
@@ -86,7 +99,7 @@ data:extend({
   {
     type = "recipe",
     name = "botshots-targeting-remote",
-    enabled = "true",
+    enabled = "false",
     ingredients =
     {
       {"processing-unit", 1},
@@ -95,6 +108,8 @@ data:extend({
     result="botshots-targeting-remote",
   },
   botshots_gun,
+  botshots_chest,
+  botshots_chest_item,
   botshots_turret,
   botshots_turret_item,
   botshots_roboport,
@@ -194,14 +209,14 @@ data:extend({
             entity_name = "construction-robot",
             check_buildability = false,
             offset_deviation = {{-4, -4}, {4, 4}},
-            repeat_count = 5
+            repeat_count = 2
           },
           {
             type = "create-entity",
             entity_name = "logistic-robot",
             check_buildability = false,
             offset_deviation = {{-4, -4}, {4, 4}},
-            repeat_count = 5
+            repeat_count = 2
           }
         }
       }
