@@ -19,8 +19,6 @@ script.on_event(defines.events.on_trigger_fired_artillery, function(event)
   local shell = event.entity
   local cannon = event.source
   if shell.name == "botshots-projectile" and cannon.name == "botshots-turret" then
-    game.print("cannon " .. cannon.name .. " " .. cannon.unit_number .. " fired shell " .. shell.name)
-
     -- disable this cannon until the shot hits, to keep it to one each.
     -- Without actually tracking the projectile itself there's no way to keep them in-order for concurrent shots to varied ranges
     cannon.active = false
@@ -39,9 +37,6 @@ script.on_event(defines.events.on_trigger_created_entity, function(event)
   local cannon = event.source
   if entity.name == "botshots-roboport" and cannon.name == "botshots-turret" then
     -- grab the roboport, build the radar and chest, record them all along with tick to expire
-    game.print("cannon " .. cannon.name .. " " .. cannon.unit_number .. " created roboport " .. entity.unit_number)
-
-
     entity.minable=false
     entity.operable=false
 
