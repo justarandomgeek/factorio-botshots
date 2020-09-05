@@ -1,10 +1,10 @@
 {
   "name":"BotShots",
   "author":"justarandomgeek",
-  "version":"0.18.0",
+  "version":"1.0.0",
   "title":"BotShots",
   "homepage":"",
   "description":"Long distance robotic operations delivered via artillery!",
-  "dependencies": ["base"],
-  "factorio_version": "0.18"
+  "dependencies": ["base", "(?) bumble-bots"],
+  "factorio_version": "1.0"
 }
