@@ -21,19 +21,32 @@ local function copyPrototype(type, name, newName)
   return p
 end
 
-local function makeBotShots(prefix)
+local function makeBotShots(prefix,order)
   local botshots_gun = copyPrototype("gun","artillery-wagon-cannon",prefix.."-cannon")
   botshots_gun.attack_parameters.ammo_category = prefix.."-shell"
 
   local botshots_turret = copyPrototype("artillery-turret","artillery-turret",prefix.."-turret")
+  botshots_turret.icon = "__BotShots__/graphics/"..prefix.."_cannon.png"
+  botshots_turret.icon_size = 64
+  botshots_turret.icon_mipmaps = 4
   botshots_turret.gun = botshots_gun.name
   botshots_turret.disable_automatic_firing = true
   botshots_turret.collision_box = {{-1.45, -1.45}, {1.45, 0.9}}
 
   local botshots_turret_item = copyPrototype("item","artillery-turret",prefix.."-turret")
+  botshots_turret_item.icon = "__BotShots__/graphics/"..prefix.."_cannon.png"
+  botshots_turret_item.icon_size = 64
+  botshots_turret_item.icon_mipmaps = 4
+  botshots_turret_item.subgroup = "artillery-logistics"
+  botshots_turret_item.order = "bz[artillery-logistics]-"..order.."b[turret]"
 
   local botshots_remote = copyPrototype("capsule","artillery-targeting-remote",prefix.."-targeting-remote")
+  botshots_remote.icon = "__BotShots__/graphics/"..prefix.."_remote.png"
+  botshots_remote.icon_size = 64
+  botshots_remote.icon_mipmaps = 4
   botshots_remote.capsule_action.flare = prefix.."-flare"
+  botshots_remote.subgroup = "artillery-logistics"
+  botshots_remote.order = "bz[artillery-logistics]-"..order.."c[remote]"
 
   local botshots_flare = copyPrototype("artillery-flare","artillery-flare",prefix.."-flare")
   botshots_flare.shot_category = prefix.."-shell"
@@ -58,7 +71,7 @@ local function makeBotShots(prefix)
     {
       type = "ammo",
       name = prefix.."-shell",
-      icon = "__base__/graphics/icons/artillery-shell.png",
+      icon = "__BotShots__/graphics/"..prefix.."_shell.png",
       icon_size = 64, icon_mipmaps = 4,
       ammo_type =
       {
@@ -83,8 +96,8 @@ local function makeBotShots(prefix)
           }
         },
       },
-      subgroup = "ammo",
-      order = "d[explosive-cannon-shell]-r[roboshell]",
+      subgroup = "artillery-logistics",
+      order = "bz[artillery-logistics]-"..order.."a[shell]",
       stack_size = 1
     },
   }
@@ -96,8 +109,8 @@ end
 data.raw["artillery-flare"]["artillery-flare"].shot_category = "artillery-shell"
 
 --TODO: rename things with bumble bots, use locale prefix "beeshots"
-makeBotShots("botshots")
-makeBotShots("spidershots")
+makeBotShots("botshots","a")
+makeBotShots("spidershots","b")
 
 local botshots_chest = copyPrototype("container","steel-chest","botshots-chest")
 botshots_chest.collision_box = {{-1.45,  0.0}, {1.45, 0.4}}
@@ -120,6 +133,12 @@ data:extend{
   botshots_chest_item,
   botshots_roboport,
   botshots_radar,
+  {
+    type = "item-subgroup",
+    name = "artillery-logistics",
+    group = "logistics",
+    order = "fo",
+  },
   -- botshots recipes
   {
     type = "recipe",
