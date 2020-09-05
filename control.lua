@@ -1,18 +1,52 @@
 script.on_init(function()
   global = {
 
-    -- outposts_expire[expiretick]={ {roboport=roboport,radar=radar,chest=chest}, ... }
+    -- outposts_expire[expiretick]={ roboport.unit_number, ... }
     outposts_expire = {},
-    -- outposts[roboport.unit_number]={roboport=roboport,radar=radar,chest=chest}
+    -- outposts[roboport.unit_number]={ roboport=roboport, radar=radar, chest=chest }
     outposts = {},
 
-    -- cannons [turret.unit_number] = {cannon = cannon, chest=chest}
+    -- cannons[cannon.unit_number]={ cannon=cannon, chest=chest }
     cannons = { },
 
     -- shells currently in-flight, indexed by cannon's unit_number
-    -- [unit_number] = {items = { [name]=count, ... } }
+    -- shells[cannon.unit_number]={ inv=LuaInventory }
     shells = {},
   }
+end)
+
+local function destroyOutpost(id,destroychest)
+  local outpost = global.outposts[id]
+  if outpost then
+    global.outposts[id] = nil
+    --TODO: save the robots? launch them or transferto chest?
+    -- morethan iniital bots may have parked here, if fired in range of an existing network for resupply
+    if outpost.roboport.valid then outpost.roboport.destroy() end
+    if outpost.radar.valid then outpost.radar.destroy() end
+
+    if outpost.chest.valid then
+      if destroychest then
+        outpost.chest.destroy()
+      else
+        outpost.chest.operable = true
+        outpost.chest.minable = true
+        outpost.chest.destructible = true
+      end
+    end
+  end
+end
+
+
+script.on_event(defines.events.on_entity_destroyed, function(event)
+  local unit_number = event.unit_number
+  -- cleanup any leftovers...
+  destroyOutpost(unit_number)
+
+  local cannon = global.cannons[unit_number]
+  local chest = cannon and cannon.chest
+  if chest and chest.valid then chest.destroy() end
+  global.cannons[unit_number] = nil
+  global.shells[unit_number] = nil
 end)
 
 script.on_event(defines.events.on_trigger_fired_artillery, function(event)
@@ -36,6 +70,7 @@ script.on_event(defines.events.on_trigger_fired_artillery, function(event)
     end
     global.shells[cannon.unit_number] = {
       inv = inv,
+      cannon = cannon,
     }
     chestinv.clear()
   end
@@ -100,6 +135,7 @@ script.on_event(defines.events.on_trigger_created_entity, function(event)
     outposts_expire[expire] = outposts_expire[expire] or {}
     outposts_expire[expire][#outposts_expire[expire]+1] = entity.unit_number
     global.outposts[entity.unit_number] = outpost
+    outpost.reg_id = script.register_on_entity_destroyed(entity)
   elseif entity.name == "spidertron" and cannon.name == "spidershots-turret" then
     local shells = global.shells
     local shell = shells[cannon.unit_number]
@@ -137,21 +173,7 @@ script.on_event(defines.events.on_tick, function()
   local outposts_expiring = outposts_expire[game.tick]
   if outposts_expiring then
     for _,id in pairs(outposts_expiring) do
-
-      local outpost = global.outposts[id]
-      if outpost then
-        global.outposts[id] = nil
-        --TODO: save the robots? launch them or transferto chest?
-        -- morethan iniital bots may have parked here, if fired in range of an existing network for resupply
-        if outpost.roboport.valid then outpost.roboport.destroy() end
-        if outpost.radar.valid then outpost.radar.destroy() end
-
-        if outpost.chest.valid then
-          outpost.chest.operable = true
-          outpost.chest.minable = true
-          outpost.chest.destructible = true
-        end
-      end
+      destroyOutpost(id)
     end
     global.outposts_expire[game.tick] = nil
   end
@@ -178,6 +200,7 @@ local function onBuilt(entity)
     global.cannons[entity.unit_number] = {
       cannon = entity,
       chest = chest,
+      reg_id = script.register_on_entity_destroyed(entity),
     }
   end
 end
@@ -203,14 +226,13 @@ end)
 script.on_event(defines.events.on_entity_died, function(event)
   local entity = event.entity
   if entity.name == "botshots-roboport" then
-    local outpost = global.outposts[entity.unit_number]
-    global.outposts[entity.unit_number] = nil
-    if outpost.radar.valid then outpost.radar.destroy() end
-    if outpost.chest.valid then outpost.chest.destroy() end
+    destroyOutpost(entity.unit_number,true)
 
   elseif entity.name == "botshots-turret" or entity.name == "spidershots-turret" then
     local chest = global.cannons[entity.unit_number].chest
     if chest.valid then chest.destroy() end
     global.cannons[entity.unit_number] = nil
+    global.shells[entity.unit_number] = nil
   end
 end)
+
